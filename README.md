@@ -54,6 +54,17 @@ npm run db:test
 - `e2e`: recorridos responsive con Playwright.
 - `docs`: arquitectura, seguridad, integraciones, hoja de ruta y QA.
 
+La conexión del entorno real está descrita paso a paso en [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md).
+
 ## Repositorio y colaboración
 
 El repositorio está preparado para llamarse `oficina-digital`. No se ha elegido licencia; el propietario debe decidirla antes de hacerlo público. Consulta [CONTRIBUTING.md](CONTRIBUTING.md). No añadas datos reales de clientes ni secretos al repositorio.
+
+Para la publicación inicial, crea en la cuenta `adriantorn` un repositorio **público y vacío** llamado `oficina-digital` (sin README, `.gitignore` ni licencia generados por GitHub) y ejecuta:
+
+```bash
+git remote add origin https://github.com/adriantorn/oficina-digital.git
+git push -u origin main
+```
+
+Después protege `main`: pull request obligatorio, al menos una aprobación, conversación resuelta y verificación `quality` de GitHub Actions superada. El flujo de ramas está definido en [CONTRIBUTING.md](CONTRIBUTING.md).
