@@ -1,0 +1,59 @@
+# Oficina Digital
+
+Aplicación personal para agentes inmobiliarios. El Hito 1 entrega la base técnica, autenticación con Supabase, aislamiento de datos mediante RLS y una primera pantalla responsive. La filosofía del producto es sencilla: menos tareas repetitivas y más control sobre la cartera propia.
+
+## Requisitos
+
+- Node.js 20.9 o posterior (recomendado: Node 22 LTS).
+- npm.
+- Opcional para el modo real: proyecto Supabase y Supabase CLI.
+
+## Arranque rápido
+
+```bash
+npm install
+npm run dev
+```
+
+Abre `http://localhost:3000`. Sin variables de Supabase se abre automáticamente `/demo`, con datos ficticios claramente identificados y sin persistencia.
+
+## Configuración real
+
+1. Copia `.env.example` como `.env.local`.
+2. En Supabase, toma la URL del proyecto y la clave **publishable**; nunca uses una clave `service_role` en el navegador.
+3. Completa `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+4. Aplica `supabase/migrations/202611160001_hito_1_foundation.sql` con `supabase db push` o enlazando el proyecto desde la CLI.
+5. Crea un usuario desde el panel de Auth de Supabase y abre `/login`.
+
+La app conserva la sesión en cookies, protege `/app` y permite cerrar sesión desde el perfil. El modo real no muestra cifras ficticias: las tarjetas indican que la agenda llegará en el Hito 4.
+
+## Comprobaciones
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npm run test:e2e
+```
+
+Las pruebas RLS requieren Docker y Supabase CLI:
+
+```bash
+supabase start
+npm run db:test
+```
+
+## Estructura
+
+- `src/app`: rutas, pantalla protegida, login y acciones de servidor.
+- `src/components`: interfaz reutilizable y accesible.
+- `src/lib`: configuración, tipos y clientes Supabase.
+- `supabase/migrations`: esquema versionado, índices y políticas RLS.
+- `supabase/tests`: aislamiento real de dos usuarios con pgTAP.
+- `e2e`: recorridos responsive con Playwright.
+- `docs`: arquitectura, seguridad, integraciones, hoja de ruta y QA.
+
+## Repositorio y colaboración
+
+El repositorio está preparado para llamarse `oficina-digital`. No se ha elegido licencia; el propietario debe decidirla antes de hacerlo público. Consulta [CONTRIBUTING.md](CONTRIBUTING.md). No añadas datos reales de clientes ni secretos al repositorio.
