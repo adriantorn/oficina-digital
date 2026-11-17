@@ -35,6 +35,7 @@ npm run typecheck
 npm test
 npm run build
 npm run test:e2e
+npm run test:supabase
 ```
 
 Las pruebas RLS requieren Docker y Supabase CLI:
@@ -43,6 +44,8 @@ Las pruebas RLS requieren Docker y Supabase CLI:
 supabase start
 npm run db:test
 ```
+
+La comprobación alojada sin Docker usa dos usuarios ficticios configurados únicamente en `.env.test.local` y ejecuta `npm run test:supabase`. Consulta [SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 
 ## Estructura
 

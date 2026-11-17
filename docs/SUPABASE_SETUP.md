@@ -45,10 +45,13 @@ La suite `supabase/tests/rls_isolation_test.sql` crea dos identidades transitori
 
 ## 5. Validación funcional alojada
 
-1. Crea dos usuarios de prueba sin datos personales reales.
-2. Inicia sesión con cada uno y confirma que se crea su perfil.
-3. Verifica `/app`, `/app/profile`, persistencia tras recarga y cierre de sesión.
-4. Ejecuta las operaciones de aislamiento contra contactos y actividades. No marques esta fase como superada hasta registrar resultados reales en `docs/QA_HITO_1.md`.
+1. Copia `.env.test.example` como `.env.test.local`.
+2. Crea dos usuarios de prueba confirmados, sin datos personales reales, y completa sus credenciales exclusivamente en el archivo local ignorado.
+3. Ejecuta `npm run test:supabase`. La prueba usa la Publishable key y sesiones normales; nunca `service_role`.
+4. Ejecuta `npm run build` y `npm run test:e2e` para verificar `/app`, `/app/profile`, persistencia tras recarga y cierre de sesión en móvil y escritorio.
+5. Registra resultados reales en `docs/QA_HITO_1.md`.
+
+La prueba alojada crea datos ficticios, comprueba CRUD propio y denegaciones cruzadas, y elimina los contactos al finalizar. No necesita Docker.
 
 ## Limpieza
 

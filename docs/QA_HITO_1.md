@@ -1,62 +1,77 @@
 # QA — Hito 1
 
-Última actualización: 16 de noviembre de 2026.
+Última actualización: 17 de noviembre de 2026.
 
 ## Estado del cierre
 
 ### Implementado
 
 - Aplicación Next.js responsive, tema persistente y modo demostración aislado.
-- Cliente SSR de Supabase, login, cierre de sesión, perfil y rutas protegidas.
+- Autenticación SSR con Supabase, login, cierre de sesión, perfil y rutas protegidas.
 - Migración reproducible para perfiles, contactos y actividades.
 - Políticas RLS separadas para `select`, `insert`, `update` y `delete`.
-- Suite pgTAP de aislamiento con dos usuarios y 10 aserciones.
-- Contratos independientes para Drive, Calendar e IA.
+- Suite pgTAP local y verificador remoto con dos usuarios autenticados normales.
+- Contratos desacoplados para Drive, Calendar e IA.
 
 ### Verificado
 
-- Calidad estática, pruebas unitarias, build de producción y recorridos Playwright.
-- Demo sin tráfico externo ni peticiones de escritura durante los recorridos.
+- Proyecto Supabase `nvrmatyniuiliqyyrmxw` vinculado mediante CLI.
+- Migración `202611160001_hito_1_foundation.sql` aplicada y registrada en remoto.
+- Site URL y redirect URL de Auth configuradas como `http://localhost:3000`.
+- Autenticación real de dos usuarios ficticios diferentes.
+- Creación automática y privacidad de ambos perfiles.
+- CRUD propio de contactos para ambos usuarios.
+- Denegación cruzada de lectura, creación atribuida, modificación y eliminación.
+- Privacidad de actividades y denegación de anotaciones sobre contactos ajenos.
+- Persistencia de sesión, perfil y logout reales en móvil y escritorio.
+- Demo sin tráfico externo ni solicitudes de escritura.
 - Navegación básica por teclado, landmarks y ausencia de desbordamiento horizontal.
-- Historial Git sin secretos detectados por búsqueda de patrones comunes.
-- Auditoría npm consultada el 16/11/2026: 0 vulnerabilidades conocidas.
+- Historial Git sin archivos locales ni credenciales versionadas.
 
-### Requiere configuración externa
+### Pendiente externo
 
-- Crear y conectar un proyecto Supabase de desarrollo.
-- Aplicar la migración al proyecto alojado.
-- Ejecutar `supabase test db` con Docker y Supabase CLI.
-- Validar autenticación y aislamiento contra Supabase real con dos usuarios de prueba.
-- Crear el repositorio público `adriantorn/oficina-digital` y hacer el primer push.
+- `supabase test db --remote` no pudo ejecutar pgTAP porque Supabase CLI requiere Docker o Podman para `pg_prove`. La misma política RLS sí quedó verificada contra el proyecto alojado mediante `npm run test:supabase` y sesiones reales.
+- Confirmar la rotación de las claves legacy/JWT. Supabase CLI 3.2.0 mostró una clave legacy `service_role` completa al ejecutar `projects api-keys` sin `--reveal`. La clave no se usó ni se escribió en archivos, pero debe considerarse expuesta.
 
-## Matriz
+## Matriz de resultados
 
-| Verificación | Comando | Estado inicial |
+| Verificación | Comando | Resultado |
 |---|---|---|
+| Enlace del proyecto | `npx supabase link --project-ref nvrmatyniuiliqyyrmxw` | Superado |
+| Simulación de migraciones | `npx supabase db push --remote --dry-run` | Superado; una migración prevista |
+| Aplicación de migraciones | `npx supabase db push --remote --yes` | Superado |
+| Estado de migraciones | `npx supabase migration list --remote` | Local y remoto: `202611160001` |
+| Configuración Auth | `npx supabase config diff/push --remote` | Site URL y redirect URL verificadas |
+| RLS remoto | `npm run test:supabase` | Superado con dos usuarios y limpieza final |
 | ESLint | `npm run lint` | Superado, 0 errores |
 | TypeScript estricto | `npm run typecheck` | Superado, 0 errores |
 | Componentes/estados | `npm test` | Superado, 2 archivos / 4 tests |
-| Compilación de producción | `npm run build` | Superada con Next.js 16.4.6 y Webpack |
-| Móvil y escritorio | `npm run test:e2e` | Superado: 12/12 en Chromium, móvil y escritorio |
-| Aislamiento RLS | `npm run db:test` | No ejecutado: este equipo no dispone de Docker ni Supabase CLI |
-| Dependencias | `npm audit --json` | Superado: 0 vulnerabilidades conocidas |
-| Historial Git | búsqueda de patrones sobre `git log -p --all` | Sin credenciales detectadas; coincidencias revisadas eran documentación/nombres de variables |
+| Compilación de producción | `npm run build` | Superada con `.env.local` y Next.js 16.4.6 |
+| Navegador móvil/escritorio | `npm run test:e2e` | Superado: 14/14 en Chromium |
+| pgTAP remoto | `npx supabase test db --remote` | No ejecutado: requiere Docker/Podman |
+| Dependencias | `npm audit --json` | 0 vulnerabilidades conocidas en la última consulta |
 
-No se considera verificada una fila hasta registrar una ejecución real. El informe se actualizará durante la implementación.
+## Cobertura RLS ejecutada
 
-La autenticación contra un proyecto real no se ha ejecutado porque no se proporcionaron credenciales de Supabase. El flujo, las rutas y las migraciones están implementados; deben validarse al conectar el proyecto. Las capturas verificadas están en `docs/screenshots/inicio-desktop.png` y `docs/screenshots/inicio-mobile.png`.
+El verificador remoto usa exclusivamente la Publishable key y las sesiones de los dos usuarios ficticios; no usa `service_role`.
 
-La publicación de GitHub tampoco se ha ejecutado. La cuenta conectada es `adriantorn`, pero el conector disponible no permite crear repositorios y GitHub CLI no está instalado. El propietario debe crear un repositorio público vacío llamado `oficina-digital`; después se podrá añadir `origin` y conservar el historial con un push normal.
+1. Ambos usuarios inician sesión y solo leen su propio perfil.
+2. A crea, consulta, modifica y elimina un contacto propio.
+3. B crea, consulta, modifica y elimina un contacto propio.
+4. A no puede leer el contacto de B y B no puede leer el de A.
+5. B no puede modificar ni eliminar el contacto de A.
+6. B no puede crear un contacto atribuido a A.
+7. A crea una actividad propia; B no puede leerla ni añadir actividades al contacto de A.
+8. Los contactos ficticios se eliminan al finalizar, incluso ante fallo.
 
-## Cobertura funcional preparada
+## Seguridad de archivos locales
 
-- Modo demo etiquetado y separado.
-- Estado real sin cifras ficticias.
-- Acciones futuras deshabilitadas con explicación.
-- Login, cierre de sesión, persistencia SSR y ruta de perfil protegida.
-- Políticas RLS y prueba con dos identidades.
-- Navegación táctil y responsive con proyectos Playwright móvil/escritorio.
+`.env.local`, `.env.test.local` y `supabase/.temp/` están ignorados por Git. Las pruebas de seguimiento confirmaron que ninguno está versionado. `.env.test.example` contiene solo marcadores y puede publicarse.
 
-## Revisión estática de RLS
+Las capturas de referencia permanecen en `docs/screenshots/`. Las capturas generadas por Playwright se escriben en `test-results/`, que también está ignorado, para no ensuciar el repositorio.
 
-Las políticas impiden asignar contactos a otro propietario, mover actividades a contactos ajenos o atribuirlas a otro autor. La eliminación de un contacto propio elimina sus actividades por cascada. Esta revisión no sustituye `supabase test db`; su estado permanece pendiente hasta ejecutar PostgreSQL real.
+## Incidencias resueltas
+
+- Los usuarios iniciales devolvieron `invalid_credentials`; se recrearon como usuarios ficticios confirmados y la repetición pasó.
+- Una prueba antigua esperaba redirección a demo sin configuración. Ahora comprueba `/login` cuando Supabase está configurado y mantiene la expectativa de demo cuando no lo está.
+- Turbopack presentó un fallo interno PostCSS en Windows; los scripts mantienen Webpack, cuya compilación está verificada localmente y en GitHub Actions.
