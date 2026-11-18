@@ -1,6 +1,6 @@
 # Oficina Digital
 
-Aplicación personal para agentes inmobiliarios. El Hito 1 entrega la base técnica, autenticación con Supabase, aislamiento de datos mediante RLS y una primera pantalla responsive. La filosofía del producto es sencilla: menos tareas repetitivas y más control sobre la cartera propia.
+Aplicación personal para agentes inmobiliarios. El Hito 2 incorpora un escritorio operativo y la gestión privada de contactos y conversaciones sobre la base autenticada y protegida del Hito 1. La filosofía del producto es sencilla: menos tareas repetitivas y más control sobre la cartera propia.
 
 ## Requisitos
 
@@ -25,7 +25,7 @@ Abre `http://localhost:3000`. Sin variables de Supabase se abre automáticamente
 4. Aplica `supabase/migrations/202611160001_hito_1_foundation.sql` con `supabase db push` o enlazando el proyecto desde la CLI.
 5. Crea un usuario desde el panel de Auth de Supabase y abre `/login`.
 
-La app conserva la sesión en cookies, protege `/app` y permite cerrar sesión desde el perfil. El modo real no muestra cifras ficticias: las tarjetas indican que la agenda llegará en el Hito 4.
+La app conserva la sesión en cookies, protege `/app` y permite configurar el nombre visible o cerrar sesión desde el perfil. Tras iniciar sesión, abre `/app` para ver el escritorio o `/app/contacts` para crear, buscar, filtrar, paginar, editar y eliminar contactos y registrar anotaciones. La búsqueda, los filtros y los recuentos se ejecutan en Supabase. El modo real no muestra cifras ficticias: la agenda continúa identificada como futura.
 
 ## Comprobaciones
 
@@ -49,7 +49,7 @@ La comprobación alojada sin Docker usa dos usuarios ficticios configurados úni
 
 ## Estructura
 
-- `src/app`: rutas, pantalla protegida, login y acciones de servidor.
+- `src/app`: rutas, escritorio protegido, contactos, login y acciones de servidor.
 - `src/components`: interfaz reutilizable y accesible.
 - `src/lib`: configuración, tipos y clientes Supabase.
 - `supabase/migrations`: esquema versionado, índices y políticas RLS.
@@ -61,13 +61,6 @@ La conexión del entorno real está descrita paso a paso en [`docs/SUPABASE_SETU
 
 ## Repositorio y colaboración
 
-El repositorio está preparado para llamarse `oficina-digital`. No se ha elegido licencia; el propietario debe decidirla antes de hacerlo público. Consulta [CONTRIBUTING.md](CONTRIBUTING.md). No añadas datos reales de clientes ni secretos al repositorio.
+El repositorio público es `adriantorn/oficina-digital`. No se ha elegido licencia; el propietario debe decidirla. Consulta [CONTRIBUTING.md](CONTRIBUTING.md). No añadas datos reales de clientes ni secretos al repositorio.
 
-Para la publicación inicial, crea en la cuenta `adriantorn` un repositorio **público y vacío** llamado `oficina-digital` (sin README, `.gitignore` ni licencia generados por GitHub) y ejecuta:
-
-```bash
-git remote add origin https://github.com/adriantorn/oficina-digital.git
-git push -u origin main
-```
-
-Después protege `main`: pull request obligatorio, al menos una aprobación, conversación resuelta y verificación `quality` de GitHub Actions superada. El flujo de ramas está definido en [CONTRIBUTING.md](CONTRIBUTING.md).
+Protege `main`: pull request obligatorio, al menos una aprobación, conversación resuelta y verificación `quality` de GitHub Actions superada. El flujo de ramas está definido en [CONTRIBUTING.md](CONTRIBUTING.md).
