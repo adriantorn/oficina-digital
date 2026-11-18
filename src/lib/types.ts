@@ -10,8 +10,31 @@ export interface Profile {
 export interface DashboardData {
   displayName: string;
   appointments: number | null;
-  pending: number | null;
+  contactCount: number;
+  recentContacts: ContactSummary[];
   isDemo: boolean;
+}
+
+export interface ContactSummary {
+  id: string;
+  kind: ContactKind;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone: string | null;
+  updatedAt: string;
+}
+
+export interface ContactDetail extends ContactSummary {
+  createdAt: string;
+}
+
+export interface ContactActivity {
+  id: string;
+  kind: ActivityKind;
+  body: string;
+  occurredAt: string;
+  authorName: string;
 }
 
 export interface DriveProvider {

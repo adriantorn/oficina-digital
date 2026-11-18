@@ -9,14 +9,14 @@ const supabaseConfigured = Boolean(
 test("la demo carga y distingue sus datos", async ({ page }, testInfo) => {
   await page.goto("/demo");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Alex");
-  await expect(page.getByRole("status")).toContainText("datos de esta vista son ficticios");
+  await expect(page.getByRole("status")).toContainText("Los datos son ficticios");
   await expect(page.getByRole("navigation", { name: "Navegación principal" })).toBeVisible();
   await page.screenshot({ path: `test-results/screenshots/inicio-${testInfo.project.name}.png`, fullPage: true });
 });
 
 test("los accesos futuros no simulan funcionalidad", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.getByRole("button", { name: /Nuevo cliente/ })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /Nuevo contacto/ })).toBeDisabled();
 });
 
 test("el tema elegido persiste al recargar", async ({ page }) => {
@@ -62,6 +62,6 @@ test("la demostración no transmite datos ni realiza escrituras", async ({ page 
     }
   });
   await page.goto("/demo");
-  await expect(page.getByRole("status")).toContainText("datos de esta vista son ficticios");
+  await expect(page.getByRole("status")).toContainText("Los datos son ficticios");
   expect(unexpectedRequests).toEqual([]);
 });

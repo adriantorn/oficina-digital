@@ -37,7 +37,7 @@ let contactB;
 
 async function signIn(client, email, password, label) {
   const { data, error } = await client.auth.signInWithPassword({ email, password });
-  if (error) throw new Error(`${label}: ${error.code || "auth_error"}`);
+  if (error) throw new Error(`${label}: ${error.code || error.message || "auth_error"}`);
   assert.ok(data.user, `${label} no obtuvo una sesión`);
   return data.user;
 }
@@ -131,11 +131,37 @@ try {
     .from("contact_activities").select("id").eq("id", activityA.id);
   assert.ifError(activityReadByBError);
   assert.equal(activityReadByB.length, 0, "B pudo leer la actividad de A");
+  const { data: activityUpdatedByB, error: activityUpdatedByBError } = await clientB
+    .from("contact_activities").update({ body: "Modificación ajena" }).eq("id", activityA.id).select("id");
+  assert.ifError(activityUpdatedByBError);
+  assert.equal(activityUpdatedByB.length, 0, "B pudo modificar la actividad de A");
+  const { data: activityDeletedByB, error: activityDeletedByBError } = await clientB
+    .from("contact_activities").delete().eq("id", activityA.id).select("id");
+  assert.ifError(activityDeletedByBError);
+  assert.equal(activityDeletedByB.length, 0, "B pudo eliminar la actividad de A");
   const { error: foreignActivityError } = await clientB
     .from("contact_activities")
     .insert({ contact_id: contactA, kind: "note", body: "Intento ficticio ajeno" });
   assert.ok(foreignActivityError, "B pudo crear una actividad en el contacto de A");
-  console.log("PASS aislamiento de actividades");
+  const { data: activityB, error: activityBError } = await clientB
+    .from("contact_activities")
+    .insert({ contact_id: contactB, kind: "note", body: "Nota ficticia propia de B" })
+    .select("id")
+    .single();
+  assert.ifError(activityBError);
+  const { data: activityBReadByA, error: activityBReadByAError } = await clientA
+    .from("contact_activities").select("id").eq("id", activityB.id);
+  assert.ifError(activityBReadByAError);
+  assert.equal(activityBReadByA.length, 0, "A pudo leer la actividad de B");
+  const { data: ownActivityUpdated, error: ownActivityUpdatedError } = await clientB
+    .from("contact_activities").update({ body: "Nota ficticia actualizada por B" }).eq("id", activityB.id).select("id").single();
+  assert.ifError(ownActivityUpdatedError);
+  assert.equal(ownActivityUpdated.id, activityB.id);
+  const { data: ownActivityDeleted, error: ownActivityDeletedError } = await clientB
+    .from("contact_activities").delete().eq("id", activityB.id).select("id").single();
+  assert.ifError(ownActivityDeletedError);
+  assert.equal(ownActivityDeleted.id, activityB.id);
+  console.log("PASS aislamiento bidireccional y CRUD propio de actividades");
 
   const { data: updatedA, error: updateAError } = await clientA
     .from("contacts").update({ last_name: "Verificado" }).eq("id", contactA).select("id").single();

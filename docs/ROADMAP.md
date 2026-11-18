@@ -1,16 +1,16 @@
 # Hoja de ruta
 
-## Hito 1 — Base (actual)
+## Hito 1 — Base (cerrado)
 
 Arquitectura, autenticación, perfil, RLS, modo demo y experiencia inicial responsive.
 
-## Hito 2 — Contactos
+## Hito 2 — Contactos (listo para revisión)
 
-Altas y edición, filtros comprador/vendedor, búsqueda, ficha individual, validación y exportación inicial.
+Escritorio con datos reales, altas, edición y eliminación, filtros comprador/vendedor, búsqueda, ficha individual y registro básico de conversaciones. Implementado en la rama `hito-2-contactos`; pendiente de revisión y merge.
 
 ## Hito 3 — Contexto
 
-Historial de comunicaciones, notas, seguimientos y línea temporal del cliente.
+Seguimientos, tareas y una línea temporal ampliada. El registro básico de anotaciones ya se incorpora en el Hito 2.
 
 ## Hito 4 — Agenda
 
