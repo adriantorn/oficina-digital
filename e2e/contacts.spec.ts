@@ -22,12 +22,28 @@ async function cleanupFictitiousContacts(projectName: string) {
   if (!authError) await client.from("contacts").delete().like("first_name", `Prueba ${projectName}-%`);
 }
 
+async function createPaginationFixtures(projectName: string, suffix: string) {
+  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error: authError } = await client.auth.signInWithPassword({ email: email!, password: password! });
+  if (authError) throw authError;
+  const rows = Array.from({ length: 13 }, (_, index) => ({
+    first_name: `Prueba ${projectName}-P${String(index + 1).padStart(2, "0")}`,
+    last_name: "Paginación",
+    email: `lote-${suffix}-${index + 1}@example.test`,
+    kind: (["both", "seller", "buyer"] as const)[index % 3],
+  }));
+  const { error } = await client.from("contacts").insert(rows);
+  if (error) throw error;
+}
+
 test.afterEach(async ({}, testInfo) => {
   await cleanupFictitiousContacts(testInfo.project.name);
 });
 
 test("CRUD, búsqueda, filtros e historial de contactos reales", async ({ page }, testInfo) => {
-  test.setTimeout(60_000);
+  test.setTimeout(90_000);
   test.skip(!configured, "Requiere Supabase y usuario ficticio local");
   const suffix = `${testInfo.project.name}-${Date.now()}`;
   const firstName = `Prueba ${suffix}`;
@@ -83,13 +99,27 @@ test("CRUD, búsqueda, filtros e historial de contactos reales", async ({ page }
   await expect(page.getByRole("heading", { name: fullName })).toBeVisible();
   await page.getByRole("link", { name: "Compradores" }).click();
   await expect(page.getByRole("heading", { name: fullName })).toBeVisible();
-  if (testInfo.project.name === "mobile") {
-    await page.screenshot({ path: "docs/screenshots/hito-2/movil-contactos.png", fullPage: true });
-  }
-
   await page.getByRole("heading", { name: fullName }).click();
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Eliminar contacto" }).click();
   await expect(page).toHaveURL(/\/app\/contacts\?deleted=1$/);
   await expect(page.getByRole("status")).toContainText("eliminado correctamente");
+
+  await createPaginationFixtures(testInfo.project.name, suffix);
+  await page.goto(`/app/contacts?q=lote-${suffix}`);
+  await expect(page.getByText(/13 resultados/)).toBeVisible();
+  await expect(page.locator('section[aria-label="Listado de contactos"] > a')).toHaveCount(12);
+  await expect(page.getByRole("navigation", { name: "Paginación de contactos" })).toBeVisible();
+  if (testInfo.project.name === "mobile") {
+    await page.screenshot({ path: "docs/screenshots/hito-2/movil-contactos.png", fullPage: true });
+  }
+  await page.getByRole("link", { name: "Siguiente" }).click();
+  await expect(page).toHaveURL(/page=2/);
+  await expect(page.locator('section[aria-label="Listado de contactos"] > a')).toHaveCount(1);
+  await page.goto(`/app/contacts?q=lote-${suffix}&type=seller`);
+  await expect(page.getByText(/9 resultados/)).toBeVisible();
+  await page.goto(`/app/contacts?q=lote-${suffix}&type=buyer`);
+  await expect(page.getByText(/9 resultados/)).toBeVisible();
+  await page.goto(`/app/contacts?q=lote-${suffix}-13%40example.test`);
+  await expect(page.getByText(/1 resultado/)).toBeVisible();
 });

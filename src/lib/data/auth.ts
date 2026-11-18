@@ -1,6 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { dashboardDisplayName } from "@/lib/profile";
 
 export async function requireUser() {
   const supabase = await createClient();
@@ -17,7 +18,7 @@ export async function getCurrentAgent() {
     .eq("id", user.id)
     .maybeSingle();
   return {
-    displayName: profile?.display_name || user.email?.split("@")[0] || "Agente",
+    displayName: dashboardDisplayName(profile?.display_name, user.email),
     email: user.email || "",
   };
 }

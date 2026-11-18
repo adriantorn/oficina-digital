@@ -28,6 +28,18 @@ test("login, sesión persistente, perfil y logout reales", async ({ page }) => {
   await expect(page).toHaveURL(/\/app\/profile$/);
   await expect(page.getByText(email!, { exact: true })).toBeVisible();
 
+  const displayName = page.getByLabel("Nombre visible en el escritorio");
+  const previousName = await displayName.inputValue();
+  await displayName.fill("Alex Prueba");
+  await page.getByRole("button", { name: "Guardar nombre" }).click();
+  await expect(page.getByRole("status")).toContainText("actualizado");
+  await page.getByRole("link", { name: "Volver" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Alex");
+  await page.getByRole("link", { name: "Ver perfil" }).click();
+  await page.getByLabel("Nombre visible en el escritorio").fill(previousName || "Agente");
+  await page.getByRole("button", { name: "Guardar nombre" }).click();
+  await expect(page.getByRole("status")).toContainText("actualizado");
+
   await page.getByRole("button", { name: "Cerrar sesión" }).click();
   await expect(page).toHaveURL(/\/login$/);
 });

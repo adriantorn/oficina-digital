@@ -1,6 +1,7 @@
 import "server-only";
 import { requireUser } from "@/lib/data/auth";
-import { isUuid, matchesContact, type ContactInput } from "@/lib/contacts/validation";
+import { isUuid, type ContactInput } from "@/lib/contacts/validation";
+import { buildContactSearchFilter, normalizeContactPagination } from "@/lib/contacts/query";
 import type { ContactActivity, ContactDetail, ContactKind, ContactSummary } from "@/lib/types";
 
 type ContactRow = {
@@ -26,16 +27,45 @@ function toSummary(row: ContactRow): ContactSummary {
   };
 }
 
-export async function listContacts(query = "", kind: ContactKind | "all" = "all", limit?: number) {
+export async function listContacts({ query = "", kind = "all", page = 1, pageSize }: { query?: string; kind?: ContactKind | "all"; page?: number; pageSize?: number } = {}) {
   const { supabase, user } = await requireUser();
-  const { data, error } = await supabase
+  const pagination = normalizeContactPagination(page, pageSize);
+  const searchFilter = buildContactSearchFilter(query);
+  let request = supabase
     .from("contacts")
-    .select("id, kind, first_name, last_name, email, phone, created_at, updated_at")
+    .select("id, kind, first_name, last_name, email, phone, created_at, updated_at", { count: "exact" })
     .eq("owner_id", user.id)
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })
+    .order("id", { ascending: true })
+    .range(pagination.from, pagination.to);
+  if (kind !== "all") request = request.in("kind", [kind, "both"]);
+  if (searchFilter) request = request.or(searchFilter);
+  const { data, error, count } = await request;
   if (error) throw new Error("No se pudieron cargar los contactos.");
-  const contacts = (data as ContactRow[]).map(toSummary).filter((contact) => matchesContact(contact, query, kind));
-  return typeof limit === "number" ? contacts.slice(0, limit) : contacts;
+  const total = count ?? 0;
+  return {
+    contacts: (data as ContactRow[]).map(toSummary),
+    total,
+    page: pagination.page,
+    pageSize: pagination.pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pagination.pageSize)),
+  };
+}
+
+export async function getContactsOverview() {
+  const { supabase, user } = await requireUser();
+  const [{ count, error: countError }, { data, error: recentError }] = await Promise.all([
+    supabase.from("contacts").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
+    supabase
+      .from("contacts")
+      .select("id, kind, first_name, last_name, email, phone, created_at, updated_at")
+      .eq("owner_id", user.id)
+      .order("updated_at", { ascending: false })
+      .order("id", { ascending: true })
+      .limit(3),
+  ]);
+  if (countError || recentError) throw new Error("No se pudo cargar el resumen de contactos.");
+  return { contactCount: count ?? 0, recentContacts: (data as ContactRow[]).map(toSummary) };
 }
 
 export async function getContact(id: string): Promise<ContactDetail | null> {

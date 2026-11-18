@@ -25,7 +25,7 @@ Abre `http://localhost:3000`. Sin variables de Supabase se abre automáticamente
 4. Aplica `supabase/migrations/202611160001_hito_1_foundation.sql` con `supabase db push` o enlazando el proyecto desde la CLI.
 5. Crea un usuario desde el panel de Auth de Supabase y abre `/login`.
 
-La app conserva la sesión en cookies, protege `/app` y permite cerrar sesión desde el perfil. Tras iniciar sesión, abre `/app` para ver el escritorio o `/app/contacts` para crear, buscar, filtrar, editar y eliminar contactos y registrar anotaciones. El modo real no muestra cifras ficticias: la agenda continúa identificada como futura.
+La app conserva la sesión en cookies, protege `/app` y permite configurar el nombre visible o cerrar sesión desde el perfil. Tras iniciar sesión, abre `/app` para ver el escritorio o `/app/contacts` para crear, buscar, filtrar, paginar, editar y eliminar contactos y registrar anotaciones. La búsqueda, los filtros y los recuentos se ejecutan en Supabase. El modo real no muestra cifras ficticias: la agenda continúa identificada como futura.
 
 ## Comprobaciones
 

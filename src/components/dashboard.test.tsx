@@ -13,7 +13,10 @@ describe("Dashboard", () => {
     render(<Dashboard data={{ displayName: "Marta", appointments: null, contactCount: 0, recentContacts: [], isDemo: false }} />);
     expect(screen.queryByText(/modo demostración/i)).not.toBeInTheDocument();
     expect(screen.getByText("—")).toBeInTheDocument();
-    expect(screen.getByText(/Agenda prevista para un hito futuro/i)).toBeInTheDocument();
+    expect(screen.getByText(/Agenda futura/i)).toBeInTheDocument();
+    const quickAction = screen.getByRole("link", { name: /nuevo contacto/i });
+    const summary = screen.getByRole("heading", { name: /de un vistazo/i });
+    expect(quickAction.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("explica por qué las acciones futuras están deshabilitadas", () => {

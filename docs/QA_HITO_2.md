@@ -8,9 +8,10 @@ El Hito 2 está implementado y verificado en la rama `hito-2-contactos`. Queda p
 
 ### Funcionalidades implementadas
 
-- Escritorio autenticado con saludo, fecha, nombre del agente, número real de contactos y contactos recientes.
-- Accesos funcionales para crear, buscar y anotar contactos; agenda y secciones futuras claramente deshabilitadas.
-- Listado responsive ordenado por actividad reciente, búsqueda por nombre, apellidos, correo o teléfono y filtros de comprador/vendedor.
+- Escritorio autenticado con bienvenida móvil compacta, nombre visible editable, fallback corto, número real de contactos y tres contactos recientes.
+- Accesos funcionales para crear, buscar y anotar contactos situados antes del resumen; agenda y secciones futuras claramente deshabilitadas.
+- Listado responsive ordenado por actividad reciente, búsqueda por nombre, apellidos, correo o teléfono y filtros de comprador/vendedor ejecutados en Supabase.
+- Paginación de 12 contactos y recuento exacto de todos los resultados coincidentes, sin depender del límite de filas de la API.
 - Los contactos de tipo `both` aparecen en ambos filtros sin duplicarse en la base de datos.
 - Alta, edición y eliminación con confirmación, validación HTML y validación independiente en servidor.
 - Ficha privada con datos básicos, última anotación, historial y creación de nuevas anotaciones.
@@ -21,8 +22,9 @@ El Hito 2 está implementado y verificado en la rama `hito-2-contactos`. Queda p
 ### Funcionalidades verificadas
 
 - Login, persistencia de sesión, perfil y cierre de sesión en escritorio y móvil.
+- Edición y restauración del nombre visible, además del fallback `Agente` cuando el perfil solo contiene el identificador del correo.
 - CRUD completo de contactos mediante la interfaz real de Supabase.
-- Búsqueda, filtros y comportamiento del tipo comprador y vendedor.
+- Búsqueda remota, paginación 12+1 sobre 13 contactos, recuentos exactos y comportamiento del tipo comprador y vendedor.
 - Creación y recuperación de anotaciones en `contact_activities`.
 - Rechazo de acceso por URL a una ficha ajena mediante identidad de usuario y RLS.
 - Aislamiento bidireccional de lectura, creación atribuida, modificación y eliminación entre dos usuarios ficticios.
@@ -44,7 +46,7 @@ El Hito 2 está implementado y verificado en la rama `hito-2-contactos`. Queda p
 |---|---|
 | ESLint | Superado, 0 errores |
 | TypeScript estricto | Superado, 0 errores |
-| Pruebas unitarias | Superado, 3 archivos / 12 tests |
+| Pruebas unitarias | Superado, 5 archivos / 19 tests |
 | Build de producción | Superado con Next.js 16.4.6 y Webpack |
 | Playwright | Superado, 16/16 en Chromium, escritorio y móvil |
 | Supabase remoto | Superado con dos usuarios autenticados normales |
@@ -60,13 +62,17 @@ El Hito 2 está implementado y verificado en la rama `hito-2-contactos`. Queda p
 5. Edición del teléfono y comprobación del cambio.
 6. Búsqueda por texto y comprobación en los filtros de vendedores y compradores.
 7. Eliminación con confirmación y aviso de éxito.
-8. Repetición completa en escritorio y móvil, con limpieza final.
+8. Creación controlada de 13 contactos ficticios y comprobación de recuento, primera página de 12 y segunda página de 1.
+9. Verificación de 9 resultados para vendedor y 9 para comprador cuando cinco registros son de tipo `both`.
+10. Repetición completa en escritorio y móvil, con limpieza final.
 
 ## Seguridad y arquitectura
 
 - Todas las lecturas y mutaciones se realizan con el cliente SSR y la sesión del usuario; no se utiliza `service_role`.
 - Las acciones de servidor vuelven a validar identidad, UUID, longitudes, correo y clasificación.
 - Las consultas incluyen `owner_id` además de depender de las políticas RLS.
+- Búsqueda, clasificación, orden, rango y recuento se resuelven en Supabase; el navegador y el servidor de Next.js reciben únicamente la página solicitada.
+- El resumen usa un recuento independiente y una consulta reciente con `limit(3)`.
 - Las fichas inexistentes o ajenas responden como no encontradas y no revelan datos técnicos.
 - Las interfaces de Drive, Calendar e IA del Hito 1 se conservan sin acoplarlas al CRUD.
 - No fue necesaria ninguna migración nueva: el Hito 2 reutiliza `contacts`, `contact_activities` y las políticas de `202611160001_hito_1_foundation.sql`, ya aplicada en remoto.
@@ -89,7 +95,7 @@ El Hito 2 está implementado y verificado en la rama `hito-2-contactos`. Queda p
 
 ## Limitaciones conocidas
 
-- No hay paginación todavía; el listado está pensado para la escala inicial del producto.
+- La paginación utiliza 12 elementos y navegación anterior/siguiente; todavía no ofrece tamaño de página configurable ni salto directo a un número concreto.
 - El historial admite anotaciones manuales, pero no tareas, seguimientos programados ni automatización de llamadas.
 - Agenda, Drive e IA se muestran únicamente como capacidades futuras, sin conexión activa.
 - En este equipo, OneDrive bloqueó de forma intermitente carpetas generadas dentro de `.next`; la compilación limpia final sí fue superada. No afecta al código ni a GitHub Actions.
