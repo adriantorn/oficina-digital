@@ -1,0 +1,4 @@
+import { AppHeader } from "@/components/app-header";
+import { AppointmentForm } from "@/components/appointment-form";
+import { listContacts } from "@/lib/data/contacts";
+export default async function NewAppointment({ searchParams }: { searchParams: Promise<{ contact?: string }> }) { const [{ contacts }, p] = await Promise.all([listContacts({ pageSize: 100 }), searchParams]); return <main className="app-shell"><AppHeader title="Nueva cita" backHref="/app/agenda" /><section className="surface mx-auto mt-6 max-w-3xl rounded-[2rem] p-6 md:p-9"><p className="eyebrow">Agenda privada</p><h1 className="mt-2 text-3xl font-black">Crear cita</h1><p className="muted mt-2">Las horas se guardan con la zona Europe/Madrid y se ajustan a los cambios estacionales.</p><AppointmentForm contacts={contacts} defaultContactId={p.contact} /></section></main>; }

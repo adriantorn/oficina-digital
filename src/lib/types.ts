@@ -1,5 +1,8 @@
 export type ContactKind = "seller" | "buyer" | "both";
 export type ActivityKind = "note" | "call" | "visit" | "event";
+export type AppointmentType = "visit" | "valuation" | "call" | "meeting" | "other";
+export type AppointmentStatus = "scheduled" | "cancelled" | "completed";
+export type AppointmentSyncStatus = "local" | "pending" | "synced" | "error";
 
 export interface Profile {
   id: string;
@@ -12,6 +15,9 @@ export interface DashboardData {
   appointments: number | null;
   contactCount: number;
   recentContacts: ContactSummary[];
+  nextAppointment?: AppointmentSummary | null;
+  upcomingAppointments?: AppointmentSummary[];
+  reminderAppointment?: AppointmentSummary | null;
   isDemo: boolean;
 }
 
@@ -37,12 +43,52 @@ export interface ContactActivity {
   authorName: string;
 }
 
+export interface AppointmentSummary {
+  id: string;
+  title: string;
+  appointmentType: AppointmentType;
+  startsAt: string;
+  endsAt: string;
+  timeZone: string;
+  status: AppointmentStatus;
+  reminderMinutes: number | null;
+  contactId: string | null;
+  contactName: string | null;
+  location: string | null;
+  googleSyncStatus: AppointmentSyncStatus;
+}
+
+export interface AppointmentDetail extends AppointmentSummary {
+  description: string | null;
+  googleEventId: string | null;
+  googleEventEtag: string | null;
+  googleSyncError: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BusyBlock {
+  startsAt: string;
+  endsAt: string;
+  source: "google";
+}
+
+export interface CalendarConnectionStatus {
+  configured: boolean;
+  connected: boolean;
+  status: "connected" | "disconnected" | "error";
+  calendarId: string | null;
+  lastError: string | null;
+}
+
 export interface DriveProvider {
   createClientFolder(contactId: string, name: string): Promise<{ externalId: string }>;
 }
 
 export interface CalendarProvider {
-  createAppointment(input: { title: string; startsAt: string }): Promise<{ externalId: string }>;
+  getBusyBlocks(input: { timeMin: string; timeMax: string; timeZone: string }): Promise<BusyBlock[]>;
+  syncAppointment(appointment: AppointmentDetail): Promise<{ externalId: string; etag: string | null }>;
+  cancelAppointment(appointment: AppointmentDetail): Promise<void>;
 }
 
 export interface AiProvider {
