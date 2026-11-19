@@ -8,6 +8,8 @@
 - `owner_id` indexado y comprobado también al crear actividades.
 - Función de alta de perfil `security definer` con `search_path` vacío y sin permiso de ejecución público.
 - Sin `service_role`, tokens o datos personales en el repositorio.
+- Citas y participantes protegidos por RLS y validación de que el contacto pertenece al mismo propietario.
+- Tokens OAuth cifrados con AES-256-GCM en una tabla sin permisos para clientes. `service_role` queda limitado al adaptador de integración del servidor.
 
 ## Protección de datos
 

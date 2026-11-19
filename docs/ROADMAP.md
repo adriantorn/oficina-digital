@@ -8,13 +8,9 @@ Arquitectura, autenticación, perfil, RLS, modo demo y experiencia inicial respo
 
 Escritorio con datos reales, altas, edición y eliminación, filtros comprador/vendedor, búsqueda, ficha individual y registro básico de conversaciones. Implementado en la rama `hito-2-contactos`; pendiente de revisión y merge.
 
-## Hito 3 — Contexto
+## Hito 3 — Agenda (en validación)
 
-Seguimientos, tareas y una línea temporal ampliada. El registro básico de anotaciones ya se incorpora en el Hito 2.
-
-## Hito 4 — Agenda
-
-Tareas y citas laborales. Después, sincronización consentida con Google Calendar y resolución de conflictos.
+Citas laborales privadas, recordatorios, vistas diaria/semanal y sincronización voluntaria con un calendario secundario de Google. El modelo prepara participantes, pero las invitaciones y roles avanzados quedan fuera de alcance.
 
 ## Hito 5 — Documentos
 

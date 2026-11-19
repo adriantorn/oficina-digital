@@ -20,4 +20,4 @@
 
 `auth.users` posee un `profile` y muchos `contacts`. Un contacto posee muchas `contact_activities`. Las tres tablas públicas están protegidas por `owner_id` o por el identificador del perfil. La actividad conserva además `author_id`, preparando una futura autorización explícita sin compartir toda la cartera.
 
-No se crean todavía tablas vacías de agenda, documentos o colaboración. Se añadirán cuando exista su lógica real, evitando deuda accidental.
+El Hito 3 añade `appointments` como fuente de verdad local. `appointment_participants` solo prepara el modelo futuro y no concede acceso ni envía invitaciones. Google Calendar permanece tras un adaptador de servidor; FreeBusy no se persiste y los tokens cifrados están en una tabla sin permisos de cliente.

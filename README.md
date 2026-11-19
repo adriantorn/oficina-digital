@@ -59,6 +59,10 @@ La comprobación alojada sin Docker usa dos usuarios ficticios configurados úni
 
 La conexión del entorno real está descrita paso a paso en [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md).
 
+## Agenda y Google Calendar
+
+El Hito 3 añade una agenda privada con citas, recordatorios, vistas diaria/semanal y RLS por propietario. Google Calendar es opcional: la agenda local funciona sin Google y sigue siendo la fuente de verdad. Para conectar una cuenta con permisos mínimos y un calendario secundario, consulta [`docs/GOOGLE_CALENDAR_SETUP.md`](docs/GOOGLE_CALENDAR_SETUP.md). Los resultados ejecutados están en [`docs/QA_HITO_3.md`](docs/QA_HITO_3.md).
+
 ## Repositorio y colaboración
 
 El repositorio público es `adriantorn/oficina-digital`. No se ha elegido licencia; el propietario debe decidirla. Consulta [CONTRIBUTING.md](CONTRIBUTING.md). No añadas datos reales de clientes ni secretos al repositorio.
