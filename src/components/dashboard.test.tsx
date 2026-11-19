@@ -9,19 +9,18 @@ describe("Dashboard", () => {
     expect(screen.getByText(/Buenos|Buenas/)).toHaveTextContent("Alex");
   });
 
-  it("no inventa cifras en modo real sin agenda", () => {
+  it("muestra cero cuando la agenda real no contiene citas", () => {
     render(<Dashboard data={{ displayName: "Marta", appointments: null, contactCount: 0, recentContacts: [], isDemo: false }} />);
     expect(screen.queryByText(/modo demostración/i)).not.toBeInTheDocument();
-    expect(screen.getByText("—")).toBeInTheDocument();
-    expect(screen.getByText(/Agenda futura/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /0.*Próximas citas.*Abrir agenda/i })).toHaveAttribute("href", "/app/agenda");
     const quickAction = screen.getByRole("link", { name: /nuevo contacto/i });
     const summary = screen.getByRole("heading", { name: /de un vistazo/i });
     expect(quickAction.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("explica por qué las acciones futuras están deshabilitadas", () => {
+  it("mantiene las acciones que escriben datos deshabilitadas en demostración", () => {
     render(<Dashboard data={{ displayName: "Alex", appointments: 0, contactCount: 12, recentContacts: [], isDemo: true }} />);
     expect(screen.getByRole("button", { name: /nuevo contacto/i })).toBeDisabled();
-    expect(screen.getByText("Próximamente")).toBeInTheDocument();
+    expect(screen.getAllByText(/Accede para gestionar datos reales/i).length).toBeGreaterThan(0);
   });
 });

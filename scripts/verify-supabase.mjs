@@ -34,6 +34,8 @@ const clientB = createClient(
 
 let contactA;
 let contactB;
+let appointmentA;
+let appointmentB;
 
 async function signIn(client, email, password, label) {
   const { data, error } = await client.auth.signInWithPassword({ email, password });
@@ -163,6 +165,29 @@ try {
   assert.equal(ownActivityDeleted.id, activityB.id);
   console.log("PASS aislamiento bidireccional y CRUD propio de actividades");
 
+  const appointmentPayload = (contactId, suffix) => ({
+    contact_id: contactId, title: `Prueba agenda ${suffix} ${marker}`,
+    appointment_type: "visit", starts_at: "2027-01-15T09:00:00.000Z",
+    ends_at: "2027-01-15T10:00:00.000Z", time_zone: "Europe/Madrid",
+  });
+  const { data: createdAppointmentA, error: appointmentAError } = await clientA.from("appointments").insert(appointmentPayload(contactA, "A")).select("id,owner_id").single();
+  assert.ifError(appointmentAError); appointmentA = createdAppointmentA.id; assert.equal(createdAppointmentA.owner_id, userA.id);
+  const { data: createdAppointmentB, error: appointmentBError } = await clientB.from("appointments").insert(appointmentPayload(contactB, "B")).select("id,owner_id").single();
+  assert.ifError(appointmentBError); appointmentB = createdAppointmentB.id; assert.equal(createdAppointmentB.owner_id, userB.id);
+  const { data: foreignAppointmentRead, error: foreignAppointmentReadError } = await clientB.from("appointments").select("id").eq("id", appointmentA);
+  assert.ifError(foreignAppointmentReadError); assert.equal(foreignAppointmentRead.length, 0, "B pudo leer la cita de A");
+  const { data: foreignAppointmentUpdate, error: foreignAppointmentUpdateError } = await clientB.from("appointments").update({ title: "Acceso indebido" }).eq("id", appointmentA).select("id");
+  assert.ifError(foreignAppointmentUpdateError); assert.equal(foreignAppointmentUpdate.length, 0, "B pudo modificar la cita de A");
+  const { data: foreignAppointmentDelete, error: foreignAppointmentDeleteError } = await clientB.from("appointments").delete().eq("id", appointmentA).select("id");
+  assert.ifError(foreignAppointmentDeleteError); assert.equal(foreignAppointmentDelete.length, 0, "B pudo eliminar la cita de A");
+  const { error: foreignContactAppointmentError } = await clientB.from("appointments").insert(appointmentPayload(contactA, "contacto ajeno"));
+  assert.ok(foreignContactAppointmentError, "B pudo vincular una cita al contacto de A");
+  const { data: ownAppointmentUpdate, error: ownAppointmentUpdateError } = await clientB.from("appointments").update({ location: "Ubicación ficticia" }).eq("id", appointmentB).select("id").single();
+  assert.ifError(ownAppointmentUpdateError); assert.equal(ownAppointmentUpdate.id, appointmentB);
+  const { data: ownAppointmentDelete, error: ownAppointmentDeleteError } = await clientB.from("appointments").delete().eq("id", appointmentB).select("id").single();
+  assert.ifError(ownAppointmentDeleteError); appointmentB = undefined; assert.ok(ownAppointmentDelete.id);
+  console.log("PASS aislamiento bidireccional, contacto propio y CRUD de citas");
+
   const { data: updatedA, error: updateAError } = await clientA
     .from("contacts").update({ last_name: "Verificado" }).eq("id", contactA).select("id").single();
   assert.ifError(updateAError);
@@ -181,6 +206,8 @@ try {
   contactB = undefined;
   console.log("PASS B elimina sus propios datos");
 } finally {
+  if (appointmentA) await clientA.from("appointments").delete().eq("id", appointmentA);
+  if (appointmentB) await clientB.from("appointments").delete().eq("id", appointmentB);
   if (contactA) await clientA.from("contacts").delete().eq("id", contactA);
   if (contactB) await clientB.from("contacts").delete().eq("id", contactB);
   await Promise.all([clientA.auth.signOut(), clientB.auth.signOut()]);
