@@ -60,6 +60,8 @@ export interface AppointmentSummary {
 
 export interface AppointmentDetail extends AppointmentSummary {
   description: string | null;
+  googleEventId: string | null;
+  googleEventEtag: string | null;
   googleSyncError: string | null;
   createdAt: string;
   updatedAt: string;
