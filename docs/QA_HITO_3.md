@@ -28,6 +28,7 @@ Fecha: 19 de noviembre de 2026. Rama: `hito-3-agenda-calendar`.
 - `npm run test:e2e`: 16/16 pruebas heredadas de autenticación, contactos, demo, teclado y responsive correctas en escritorio y móvil.
 - Playwright de agenda: CRUD, edición, vista semanal y cancelación correctos tanto en escritorio como en móvil. Las capturas están en `docs/screenshots/hito-3/`.
 - Tras las correcciones de revisión, Playwright de agenda volvió a pasar: 2/2 proyectos (escritorio y móvil); se actualizaron las capturas correspondientes.
+- GitHub Actions `quality` #44523484715 completó correctamente sobre `91d234b`. Solo emitió un aviso no bloqueante: `actions/checkout@v4` y `actions/setup-node@v4` declaran Node 20 y el runner los fuerza a Node 24.
 
 ## Requiere configuración externa o validación final
 
