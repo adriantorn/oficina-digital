@@ -13,6 +13,7 @@ Fecha: 19 de noviembre de 2026. Rama: `hito-3-agenda-calendar`.
 - Los bloques personales aparecen como **Ocupado · Personal** y participan en la comprobación previa de solapamientos. Si FreeBusy falla, guardar exige confirmación expresa.
 - La reconexión comprueba y reutiliza el calendario laboral anterior cuando sigue accesible. Solo crea otro si Google confirma que el anterior ya no está disponible.
 - Errores temporales de Google se reintentan de forma acotada. Los fallos definitivos, incluida una cancelación remota fallida, quedan guardados y ofrecen reintento manual sin revertir la cita local.
+- El formulario mantiene un borrador controlado completo. Las respuestas de validación, solapamiento local/personal y fallo FreeBusy devuelven y rehidratan fecha, horas, título, contacto, tipo, ubicación, recordatorio y descripción antes de confirmar.
 
 ## Verificado realmente
 
@@ -23,16 +24,18 @@ Fecha: 19 de noviembre de 2026. Rama: `hito-3-agenda-calendar`.
 - La prueba eliminó los datos ficticios creados.
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm test`: 35/35 pruebas unitarias correctas. Incluyen respuestas Google simuladas para actualización con ETag, conflicto 409, errores internos de FreeBusy, reutilización del calendario y reintentos/fallos de cancelación.
+- `npm test`: 36/36 pruebas unitarias correctas. Incluyen el borrador íntegro y respuestas Google simuladas para actualización con ETag, conflicto 409, errores internos de FreeBusy, reutilización del calendario y reintentos/fallos de cancelación.
 - `npm run build`: compilación de producción correcta. El primer intento encontró un bloqueo `EPERM` de OneDrive en `.next`; tras eliminar solo esa salida generada, la compilación terminó correctamente.
-- `npm run test:e2e`: 16/16 pruebas heredadas de autenticación, contactos, demo, teclado y responsive correctas en escritorio y móvil.
+- `npm run test:e2e`: 22/22 pruebas correctas en escritorio y móvil: autenticación, contactos, demo, teclado, responsive y seis recorridos de Agenda.
 - Playwright de agenda: CRUD, edición, vista semanal y cancelación correctos tanto en escritorio como en móvil. Las capturas están en `docs/screenshots/hito-3/`.
 - Tras las correcciones de revisión, Playwright de agenda volvió a pasar: 2/2 proyectos (escritorio y móvil); se actualizaron las capturas correspondientes.
+- Regresión del 23/11/2026: editar a otra fecha/hora solapada, recibir el aviso, confirmar y guardar conserva exactamente el borrador y persiste los nuevos valores en Supabase. También se verifica que un error de validación conserva todos los campos. Ambos recorridos pasan en escritorio y móvil.
+- El adaptador Google simulado verifica que una edición sincronizada realiza un único `PUT` con ETag y ninguna creación `POST`, evitando duplicados.
 - GitHub Actions `quality` #44523484715 completó correctamente sobre `91d234b`. Solo emitió un aviso no bloqueante: `actions/checkout@v4` y `actions/setup-node@v4` declaran Node 20 y el runner los fuerza a Node 24.
 
 ## Requiere configuración externa o validación final
 
-- Google Cloud OAuth no tiene credenciales locales configuradas: no se ha ejecutado una conexión real, creación de calendario, FreeBusy, sincronización, renovación ni desconexión. Seguir `docs/GOOGLE_CALENDAR_SETUP.md`.
+- Las variables OAuth locales están configuradas, pero la matriz real completa de conexión, FreeBusy, actualización, renovación y desconexión con una cuenta autorizada sigue pendiente de aprobación manual. Seguir `docs/GOOGLE_CALENDAR_SETUP.md`.
 - La interfaz consulta disponibilidad de Google solo cuando la conexión está configurada; ante fallo no presupone que el usuario esté libre.
 - Las pruebas con API simulada verifican la lógica y los errores esperados, pero no sustituyen la prueba OAuth con una cuenta autorizada.
 
