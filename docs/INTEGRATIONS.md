@@ -6,7 +6,9 @@ Los adaptadores implementarán contratos de `src/lib/types.ts`. Las credenciales
 
 ## Google Drive
 
-Un adaptador de servidor creará o vinculará una carpeta por contacto y almacenará únicamente identificadores externos y metadatos necesarios. Los permisos se comprobarán antes de cada operación. No se implementa hasta decidir OAuth, estructura y política de eliminación.
+El adaptador de servidor usa autorización incremental y únicamente `drive.file`. Crea o reutiliza `Oficina Digital / Clientes / Nombre`, identifica el expediente por el UUID del contacto y almacena solo IDs y metadatos. La conexión, renovación y desconexión son independientes de Calendar. Desconectar o borrar un contacto no elimina contenido remoto. Las operaciones de apertura vuelven a comprobar propietario y conexión antes de pedir a Drive un enlace actual.
+
+No se solicita acceso a Gmail. El modelo admite documentos `manual`, `gmail` o `generated` y múltiples correos por contacto para una fase futura, pero no lee correo ni clasifica adjuntos todavía.
 
 ## Google Calendar
 

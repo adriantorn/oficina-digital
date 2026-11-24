@@ -63,6 +63,10 @@ La conexión del entorno real está descrita paso a paso en [`docs/SUPABASE_SETU
 
 El Hito 3 añade una agenda privada con citas, recordatorios, vistas diaria/semanal y RLS por propietario. Google Calendar es opcional: la agenda local funciona sin Google y sigue siendo la fuente de verdad. Para conectar una cuenta con permisos mínimos y un calendario secundario, consulta [`docs/GOOGLE_CALENDAR_SETUP.md`](docs/GOOGLE_CALENDAR_SETUP.md). Los resultados ejecutados están en [`docs/QA_HITO_3.md`](docs/QA_HITO_3.md).
 
+## Expedientes y Google Drive
+
+El Hito 4 permite conectar Drive de forma independiente, activar un expediente por contacto y subir, listar y abrir documentos desde la ficha. Solo se solicita `drive.file`; los archivos permanecen en Google. Consulta [`docs/GOOGLE_DRIVE_SETUP.md`](docs/GOOGLE_DRIVE_SETUP.md) y [`docs/QA_HITO_4.md`](docs/QA_HITO_4.md).
+
 ## Repositorio y colaboración
 
 El repositorio público es `adriantorn/oficina-digital`. No se ha elegido licencia; el propietario debe decidirla. Consulta [CONTRIBUTING.md](CONTRIBUTING.md). No añadas datos reales de clientes ni secretos al repositorio.

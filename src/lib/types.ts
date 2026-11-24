@@ -81,8 +81,35 @@ export interface CalendarConnectionStatus {
   lastError: string | null;
 }
 
+export interface DriveConnectionStatus {
+  configured: boolean;
+  connected: boolean;
+  status: "connected" | "disconnected" | "error";
+  lastError: string | null;
+}
+
+export interface ContactDriveFolder {
+  id: string;
+  contactId: string;
+  driveFolderId: string | null;
+  folderName: string;
+  status: "creating" | "ready" | "error";
+  lastError: string | null;
+}
+
+export interface ContactDocument {
+  id: string;
+  contactId: string;
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+  source: "manual" | "gmail" | "generated";
+  uploadedAt: string | null;
+}
+
 export interface DriveProvider {
   createClientFolder(contactId: string, name: string): Promise<{ externalId: string }>;
+  uploadDocument(input: { contactId: string; name: string; mimeType: string; bytes: Uint8Array }): Promise<{ externalId: string }>;
 }
 
 export interface CalendarProvider {

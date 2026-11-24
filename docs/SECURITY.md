@@ -10,6 +10,9 @@
 - Sin `service_role`, tokens o datos personales en el repositorio.
 - Citas y participantes protegidos por RLS y validación de que el contacto pertenece al mismo propietario.
 - Tokens OAuth cifrados con AES-256-GCM en una tabla sin permisos para clientes. `service_role` queda limitado al adaptador de integración del servidor.
+- Drive usa el scope mínimo `drive.file`; no puede recorrer archivos ajenos a la aplicación. Tokens de Drive y Calendar se almacenan y revocan por separado.
+- Las tablas de conexiones no tienen permisos para el navegador. Expedientes y documentos solo conceden lectura RLS al propietario; las mutaciones pasan por servidor y validan contacto, carpeta y propietario.
+- Las cargas se limitan a 15 MB y a formatos documentales habituales. Los archivos no se guardan en Supabase ni se incluyen en logs.
 
 ## Protección de datos
 
