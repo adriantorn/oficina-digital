@@ -21,15 +21,16 @@ Fecha de trabajo: 24 de noviembre de 2026.
 - Auditoría npm: 0 vulnerabilidades conocidas.
 - Compatibilidad con Calendar: las pruebas unitarias previas de sincronización y disponibilidad permanecen incluidas en las 43/43 y pasan sin cambios.
 - Simulación de migración remota: detecta únicamente `202611240001_hito_4_google_drive.sql` contra el proyecto `nvrmatyniuiliqyyrmxw`.
+- Migración remota: aplicada y registrada como `202611240001` en `nvrmatyniuiliqyyrmxw` con autorización expresa del propietario.
+- Aislamiento remoto: superado con dos usuarios ficticios. Cada agente solo lee sus expedientes/documentos; las mutaciones directas y la lectura de conexiones quedan bloqueadas al navegador.
+- Playwright real: 24/24 en escritorio y móvil, incluyendo autenticación, Contactos, Agenda y la nueva interfaz documental.
+- Capturas responsive: cuatro imágenes revisadas visualmente para ficha e Integraciones, en escritorio y móvil.
 - GitHub Actions: ejecución `45370673060` superada en la PR #3 (lint, TypeScript, unitarias, build y Playwright).
 
 ## Pendiente de configuración o ejecución externa
 
-- Aplicar la migración remota: pendiente de confirmación explícita porque la CLI etiqueta el destino vinculado como `production`, aunque se llama `oficina-digital-dev`.
 - Habilitar Google Drive API y declarar `drive.file` en el proyecto Google Cloud del propietario.
 - Ejecutar conexión real, creación de carpeta, subida y apertura con una cuenta autorizada. No se marca como verificado todavía.
-- Ejecutar aislamiento remoto con dos usuarios tras aplicar la migración.
-- Ejecutar Playwright real de Drive en escritorio/móvil y generar capturas finales tras disponer del esquema remoto.
 - PR independiente: #3, abierta como borrador y sin fusión automática.
 
 ## Garantías de alcance
