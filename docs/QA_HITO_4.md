@@ -18,6 +18,7 @@ Fecha de trabajo: 24 de noviembre de 2026.
 - ESLint: superado.
 - Pruebas unitarias: 43/43. Incluyen jerarquía, reconexión, idempotencia, contactos homónimos, reintento de subida y validación de tipos/tamaño.
 - Build de producción: superado; incluye las rutas protegidas de OAuth, subida y apertura.
+- Auditoría npm: 0 vulnerabilidades conocidas.
 - Compatibilidad con Calendar: las pruebas unitarias previas de sincronización y disponibilidad permanecen incluidas en las 43/43 y pasan sin cambios.
 - Simulación de migración remota: detecta únicamente `202611240001_hito_4_google_drive.sql` contra el proyecto `nvrmatyniuiliqyyrmxw`.
 
@@ -28,6 +29,7 @@ Fecha de trabajo: 24 de noviembre de 2026.
 - Ejecutar conexión real, creación de carpeta, subida y apertura con una cuenta autorizada. No se marca como verificado todavía.
 - Ejecutar aislamiento remoto con dos usuarios tras aplicar la migración.
 - Ejecutar Playwright escritorio/móvil, capturas finales y GitHub Actions tras disponer del esquema remoto.
+- PR independiente: #3, abierta como borrador y sin fusión automática.
 
 ## Garantías de alcance
 

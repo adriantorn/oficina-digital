@@ -1,6 +1,6 @@
 # Oficina Digital
 
-Aplicación personal para agentes inmobiliarios. El Hito 2 incorpora un escritorio operativo y la gestión privada de contactos y conversaciones sobre la base autenticada y protegida del Hito 1. La filosofía del producto es sencilla: menos tareas repetitivas y más control sobre la cartera propia.
+Aplicación personal para agentes inmobiliarios. Reúne escritorio, contactos, agenda y expedientes privados sobre una base autenticada y protegida. La filosofía del producto es sencilla: menos tareas repetitivas y más control sobre la cartera propia.
 
 ## Requisitos
 
@@ -25,7 +25,7 @@ Abre `http://localhost:3000`. Sin variables de Supabase se abre automáticamente
 4. Aplica `supabase/migrations/202611160001_hito_1_foundation.sql` con `supabase db push` o enlazando el proyecto desde la CLI.
 5. Crea un usuario desde el panel de Auth de Supabase y abre `/login`.
 
-La app conserva la sesión en cookies, protege `/app` y permite configurar el nombre visible o cerrar sesión desde el perfil. Tras iniciar sesión, abre `/app` para ver el escritorio o `/app/contacts` para crear, buscar, filtrar, paginar, editar y eliminar contactos y registrar anotaciones. La búsqueda, los filtros y los recuentos se ejecutan en Supabase. El modo real no muestra cifras ficticias: la agenda continúa identificada como futura.
+La app conserva la sesión en cookies, protege `/app` y permite configurar el nombre visible o cerrar sesión desde el perfil. Tras iniciar sesión, abre `/app` para ver el escritorio o `/app/contacts` para gestionar contactos, conversaciones y expedientes. La búsqueda, los filtros y los recuentos se ejecutan en Supabase y la agenda local sigue siendo la fuente de verdad de Calendar.
 
 ## Comprobaciones
 

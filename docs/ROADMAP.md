@@ -6,7 +6,7 @@ Arquitectura, autenticación, perfil, RLS, modo demo y experiencia inicial respo
 
 ## Hito 2 — Contactos (cerrado)
 
-Escritorio con datos reales, altas, edición y eliminación, filtros comprador/vendedor, búsqueda, ficha individual y registro básico de conversaciones. Implementado en la rama `hito-2-contactos`; pendiente de revisión y merge.
+Escritorio con datos reales, altas, edición y eliminación, filtros comprador/vendedor, búsqueda, ficha individual y registro básico de conversaciones.
 
 ## Hito 3 — Agenda (cerrado)
 
