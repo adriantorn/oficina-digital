@@ -1,3 +1,4 @@
 import "server-only";
 export const GOOGLE_SCOPES = ["https://www.googleapis.com/auth/calendar.freebusy", "https://www.googleapis.com/auth/calendar.app.created"] as const;
+export const GOOGLE_DRIVE_SCOPES = ["https://www.googleapis.com/auth/drive.file"] as const;
 export function googleConfig() { const clientId=process.env.GOOGLE_CLIENT_ID, clientSecret=process.env.GOOGLE_CLIENT_SECRET, redirectUri=process.env.GOOGLE_REDIRECT_URI||"http://localhost:3000/api/integrations/google/callback", encryptionKey=process.env.GOOGLE_TOKEN_ENCRYPTION_KEY; return { configured:Boolean(clientId&&clientSecret&&encryptionKey&&process.env.SUPABASE_SERVICE_ROLE_KEY),clientId,clientSecret,redirectUri,encryptionKey }; }

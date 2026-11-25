@@ -11,6 +11,7 @@ const required = [
   "TEST_USER_A_PASSWORD",
   "TEST_USER_B_EMAIL",
   "TEST_USER_B_PASSWORD",
+  "SUPABASE_SERVICE_ROLE_KEY",
 ];
 
 const missing = required.filter((name) => !process.env[name]);
@@ -31,11 +32,18 @@ const clientB = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   options,
 );
+const admin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } },
+);
 
 let contactA;
 let contactB;
 let appointmentA;
 let appointmentB;
+let driveFolderA;
+let driveFolderB;
 
 async function signIn(client, email, password, label) {
   const { data, error } = await client.auth.signInWithPassword({ email, password });
@@ -112,6 +120,39 @@ try {
   assert.ifError(readBByAError);
   assert.equal(readBByA.length, 0, "A pudo leer el contacto de B");
   console.log("PASS aislamiento bidireccional de contactos");
+
+  const { data: driveFolders, error: driveFoldersError } = await admin.from("contact_drive_folders").insert([
+    { owner_id: userA.id, contact_id: contactA, drive_folder_id: `test-folder-a-${Date.now()}`, folder_name: "Expediente ficticio A", status: "ready" },
+    { owner_id: userB.id, contact_id: contactB, drive_folder_id: `test-folder-b-${Date.now()}`, folder_name: "Expediente ficticio B", status: "ready" },
+  ]).select("id,owner_id,contact_id");
+  assert.ifError(driveFoldersError);
+  driveFolderA = driveFolders.find((row) => row.owner_id === userA.id).id;
+  driveFolderB = driveFolders.find((row) => row.owner_id === userB.id).id;
+  const { error: documentsError } = await admin.from("contact_documents").insert([
+    { owner_id: userA.id, contact_id: contactA, folder_id: driveFolderA, drive_file_id: `test-file-a-${Date.now()}`, name: "Documento ficticio A.pdf", mime_type: "application/pdf", size_bytes: 100, status: "ready" },
+    { owner_id: userB.id, contact_id: contactB, folder_id: driveFolderB, drive_file_id: `test-file-b-${Date.now()}`, name: "Documento ficticio B.pdf", mime_type: "application/pdf", size_bytes: 100, status: "ready" },
+  ]);
+  assert.ifError(documentsError);
+  for (const [client, ownContact, foreignContact, label] of [
+    [clientA, contactA, contactB, "A"],
+    [clientB, contactB, contactA, "B"],
+  ]) {
+    for (const table of ["contact_drive_folders", "contact_documents"]) {
+      const { data: own, error: ownError } = await client.from(table).select("id").eq("contact_id", ownContact);
+      assert.ifError(ownError);
+      assert.equal(own.length, 1, `${label} no pudo consultar su propio registro en ${table}`);
+      const { data: foreign, error: foreignError } = await client.from(table).select("id").eq("contact_id", foreignContact);
+      assert.ifError(foreignError);
+      assert.equal(foreign.length, 0, `${label} pudo consultar registros ajenos en ${table}`);
+    }
+    const { error: connectionsReadError } = await client.from("google_drive_connections").select("owner_id");
+    assert.ok(connectionsReadError, `${label} pudo leer la tabla de conexiones de Drive`);
+  }
+  const { error: clientInsertFolderError } = await clientA.from("contact_drive_folders").insert({ contact_id: contactA, folder_name: "Intento cliente" });
+  assert.ok(clientInsertFolderError, "el navegador pudo crear metadatos de Drive directamente");
+  const { error: clientUpdateDocumentError } = await clientB.from("contact_documents").update({ name: "Ataque.pdf" }).eq("contact_id", contactA);
+  assert.ok(clientUpdateDocumentError, "B pudo modificar documentos de A");
+  console.log("PASS RLS de expedientes, documentos y conexiones de Drive entre dos agentes");
 
   const { data: readOwnB, error: readOwnBError } = await clientB
     .from("contacts").select("id").eq("id", contactB).single();
@@ -208,9 +249,11 @@ try {
 } finally {
   if (appointmentA) await clientA.from("appointments").delete().eq("id", appointmentA);
   if (appointmentB) await clientB.from("appointments").delete().eq("id", appointmentB);
+  if (driveFolderA) await admin.from("contact_drive_folders").delete().eq("id", driveFolderA);
+  if (driveFolderB) await admin.from("contact_drive_folders").delete().eq("id", driveFolderB);
   if (contactA) await clientA.from("contacts").delete().eq("id", contactA);
   if (contactB) await clientB.from("contacts").delete().eq("id", contactB);
   await Promise.all([clientA.auth.signOut(), clientB.auth.signOut()]);
 }
 
-console.log("Supabase remoto verificado sin service_role y sin datos reales.");
+console.log("Supabase remoto verificado con clientes autenticados; service_role se usó solo en este script de servidor para preparar y limpiar metadatos ficticios.");

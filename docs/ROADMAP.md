@@ -4,17 +4,17 @@
 
 Arquitectura, autenticación, perfil, RLS, modo demo y experiencia inicial responsive.
 
-## Hito 2 — Contactos (listo para revisión)
+## Hito 2 — Contactos (cerrado)
 
-Escritorio con datos reales, altas, edición y eliminación, filtros comprador/vendedor, búsqueda, ficha individual y registro básico de conversaciones. Implementado en la rama `hito-2-contactos`; pendiente de revisión y merge.
+Escritorio con datos reales, altas, edición y eliminación, filtros comprador/vendedor, búsqueda, ficha individual y registro básico de conversaciones.
 
-## Hito 3 — Agenda (en validación)
+## Hito 3 — Agenda (cerrado)
 
 Citas laborales privadas, recordatorios, vistas diaria/semanal y sincronización voluntaria con un calendario secundario de Google. El modelo prepara participantes, pero las invitaciones y roles avanzados quedan fuera de alcance.
 
-## Hito 5 — Documentos
+## Hito 4 — Expedientes y documentos (en desarrollo)
 
-Carpetas y permisos de Google Drive por cliente, con trazabilidad y revocación.
+Carpetas automáticas y documentos en Google Drive por cliente, con permiso mínimo, trazabilidad y desconexión no destructiva. Gmail queda preparado en el modelo, sin permisos ni lectura.
 
 ## Posteriores
 

@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { validateContact, isUuid, type ContactErrors } from "@/lib/contacts/validation";
 import { deleteContactRecord, insertContact, insertContactNote, updateContactRecord } from "@/lib/data/contacts";
+import { ensureContactDriveFolder } from "@/lib/data/drive";
+import { requireUser } from "@/lib/data/auth";
+import { getContact } from "@/lib/data/contacts";
 
 export type ContactActionState = {
   message: string;
@@ -69,4 +72,21 @@ export async function addNoteAction(_: NoteActionState, formData: FormData): Pro
   revalidatePath("/app");
   revalidatePath(`/app/contacts/${id}`);
   redirect(`/app/contacts/${id}?noted=1`);
+}
+
+export async function activateDriveFolderAction(formData: FormData) {
+  const id = String(formData.get("id") || "");
+  if (!isUuid(id)) redirect("/app/contacts?driveError=invalid");
+  let ok = false;
+  try {
+    const [{ user }, contact] = await Promise.all([requireUser(), getContact(id)]);
+    if (contact) {
+      await ensureContactDriveFolder(user.id, contact);
+      ok = true;
+    }
+  } catch {
+    ok = false;
+  }
+  revalidatePath(`/app/contacts/${id}`);
+  redirect(`/app/contacts/${id}?${ok ? "driveFolder=1" : "driveError=1"}`);
 }
