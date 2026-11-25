@@ -20,6 +20,60 @@ async function request(url: string, init: RequestInit, attempts = 3) {
 
 function escapeQuery(value: string) { return value.replaceAll("\\", "\\\\").replaceAll("'", "\\'"); }
 
+type DriveDocument = {
+  id: string;
+  name: string;
+  mimeType: string;
+  modifiedTime?: string;
+  webViewLink?: string;
+};
+
+function safeDriveLink(link?: string) {
+  if (!link) return undefined;
+  try {
+    const url = new URL(link);
+    if (["https://drive.google.com", "https://docs.google.com"].includes(url.origin) && !url.username && !url.password) return url.href;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function listDriveFolderDocuments(token: string, folderId: string, contactId: string) {
+  const options = { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" as const, signal: AbortSignal.timeout(12_000) };
+  const folderResponse = await request(`${DRIVE_API}/files/${encodeURIComponent(folderId)}?fields=mimeType,trashed,appProperties&supportsAllDrives=true`, options);
+  if (!folderResponse.ok) throw new GoogleDriveError("No se pudo consultar el expediente en Drive.", folderResponse.status);
+  const folder = await folderResponse.json() as { mimeType?: string; trashed?: boolean; appProperties?: { oficinaDigitalContactId?: string } };
+  if (folder.trashed || folder.mimeType !== FOLDER_MIME || folder.appProperties?.oficinaDigitalContactId !== contactId) {
+    throw new GoogleDriveError("La carpeta vinculada no está disponible para este expediente.", 404);
+  }
+
+  const params = new URLSearchParams({
+    q: `'${escapeQuery(folderId)}' in parents and trashed = false and mimeType != '${FOLDER_MIME}'`,
+    spaces: "drive",
+    supportsAllDrives: "true",
+    includeItemsFromAllDrives: "true",
+    pageSize: "100",
+    orderBy: "modifiedTime desc",
+    fields: "nextPageToken,incompleteSearch,files(id,name,mimeType,modifiedTime,webViewLink)",
+  });
+  const documents = new Map<string, DriveDocument>();
+  const seenTokens = new Set<string>();
+  for (;;) {
+    const response = await request(`${DRIVE_API}/files?${params}`, options);
+    if (!response.ok) throw new GoogleDriveError("No se pudieron actualizar los documentos desde Drive.", response.status);
+    const page = await response.json() as { files?: DriveDocument[]; nextPageToken?: string; incompleteSearch?: boolean };
+    if (page.incompleteSearch || (page.nextPageToken && seenTokens.has(page.nextPageToken))) {
+      throw new GoogleDriveError("Drive devolvió una lista incompleta. Inténtalo de nuevo.", 502);
+    }
+    for (const file of page.files ?? []) {
+      documents.set(file.id, { ...file, webViewLink: safeDriveLink(file.webViewLink) });
+    }
+    if (!page.nextPageToken) return [...documents.values()];
+    seenTokens.add(page.nextPageToken);
+    params.set("pageToken", page.nextPageToken);
+  }
+}
+
 async function findFolder(token: string, key: string, value: string, parentId?: string) {
   const clauses = [
     `mimeType = '${FOLDER_MIME}'`,

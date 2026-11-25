@@ -28,19 +28,17 @@ function uploadErrorMessage(code: Notice["uploadError"]) {
   return "No se pudo subir el documento. Comprueba la conexión con Drive e inténtalo de nuevo.";
 }
 
-function fileSize(bytes: number) {
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
-
 export default async function ContactPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Notice> }) {
   const { id } = await params;
   const contact = await getContact(id);
   if (!contact) notFound();
-  const [{ user }, activities, folder, documents, notice] = await Promise.all([
-    requireUser(), getContactActivities(id), getContactDriveFolder(id), listContactDocuments(id), searchParams,
+  const [{ user }, activities, folder, notice] = await Promise.all([
+    requireUser(), getContactActivities(id), getContactDriveFolder(id), searchParams,
   ]);
   const drive = await driveConnectionStatus(user.id);
+  const listing = drive.connected && folder?.status === "ready"
+    ? await listContactDocuments(id).then((documents) => ({ documents, failed: false })).catch(() => ({ documents: [], failed: true }))
+    : { documents: [], failed: false };
   const success = notice.created ? "Contacto creado correctamente." : notice.updated ? "Cambios guardados correctamente." : notice.noted ? "Anotación añadida al historial." : notice.driveFolder ? "Expediente activado en Google Drive." : notice.uploaded ? "Documento añadido al expediente." : null;
   return <main className="app-shell"><AppHeader title="Ficha de contacto" backHref="/app/contacts" />
     {success && <p role="status" className="mt-5 rounded-xl bg-[var(--surface-muted)] p-4 font-semibold">{success}</p>}
@@ -58,7 +56,17 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
               <p className="muted mt-2 text-xs">PDF, fotos y documentos habituales. Máximo 15 MB. Si hace falta, crearemos el expediente automáticamente.</p>
               <button className="touch mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 font-bold text-white"><Upload size={18} /> Subir a Drive</button>
             </form>
-            {documents.length ? <ul className="mt-6 space-y-3" aria-label="Documentos del expediente">{documents.map((document) => <li key={document.id}><a href={`/api/documents/${document.id}/open`} target="_blank" rel="noreferrer" className="block rounded-xl border border-[var(--border)] p-3 hover:bg-[var(--surface-muted)]"><span className="block break-words font-bold">{document.name}</span><span className="muted mt-1 block text-xs">{fileSize(document.sizeBytes)} · {document.uploadedAt ? dateTime.format(new Date(document.uploadedAt)) : "Subido"}</span></a></li>)}</ul> : <p className="muted mt-5 text-sm">Todavía no hay documentos.</p>}
+            {folder?.status === "ready" && <div className="mt-6">
+              <form method="get" action={`/app/contacts/${contact.id}#documents-title`}>
+                <button className="touch inline-flex items-center rounded-xl border border-[var(--border)] px-4 font-bold">Actualizar documentos</button>
+              </form>
+              <p className="muted mt-3 text-sm">Drive muestra aquí los archivos autorizados para Oficina Digital. Los que se añadan directamente en Drive pueden aparecer solo al abrir el expediente.</p>
+              {listing.failed ? <p role="alert" className="mt-3 text-sm font-semibold">No se pudo consultar Google Drive. Pulsa «Actualizar documentos» para volver a intentarlo.</p>
+                : listing.documents.length ? <ul className="mt-4 space-y-3" aria-label="Documentos del expediente">{listing.documents.map((document) => <li key={document.id} className="rounded-xl border border-[var(--border)] p-3">
+                  {document.webViewLink ? <a href={document.webViewLink} target="_blank" rel="noreferrer" className="block break-words font-bold underline">{document.name}</a> : <p className="break-words font-bold">{document.name} <span className="muted text-xs">· Sin enlace de apertura</span></p>}
+                  {document.modifiedTime && <time className="muted mt-1 block text-xs" dateTime={document.modifiedTime}>{dateTime.format(new Date(document.modifiedTime))}</time>}
+                </li>)}</ul> : <p className="muted mt-4 text-sm">Drive no devolvió documentos autorizados para este expediente.</p>}
+            </div>}
           </>}
         </section>
         <section className="surface rounded-3xl p-6"><h2 className="font-extrabold">Zona sensible</h2><p className="muted mb-4 mt-2 text-sm">Al eliminar el contacto también se elimina su historial y las referencias del expediente. Las carpetas y archivos de Drive no se borran.</p><DeleteContactButton id={contact.id} /></section></aside>

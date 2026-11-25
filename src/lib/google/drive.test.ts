@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resolveContactDriveFolder, resolveOfficeDriveFolders, uploadDriveFile } from "./drive";
+import { listDriveFolderDocuments, resolveContactDriveFolder, resolveOfficeDriveFolders, uploadDriveFile } from "./drive";
 
 function response(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -8,6 +8,49 @@ function response(body: unknown, status = 200) {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Google Drive", () => {
+  const folder = { mimeType: "application/vnd.google-apps.folder", appProperties: { oficinaDigitalContactId: "contact" } };
+  const pdf = { id: "pdf", name: "Original.pdf", mimeType: "application/pdf", webViewLink: "https://drive.google.com/file/d/pdf/view" };
+  const native = { id: "native", name: "Notas", mimeType: "application/vnd.google-apps.document", webViewLink: "https://docs.google.com/document/d/native/edit" };
+
+  it("recorre todas las páginas y usa el estado de Drive al volver a consultar", async () => {
+    const renamed = { ...pdf, name: "Renombrado.pdf" };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(folder))
+      .mockResolvedValueOnce(response({ files: [pdf], nextPageToken: "next" }))
+      .mockResolvedValueOnce(response({ files: [], nextPageToken: "last" }))
+      .mockResolvedValueOnce(response({ files: [pdf, native] }))
+      .mockResolvedValueOnce(response(folder))
+      .mockResolvedValueOnce(response({ files: [renamed] }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(listDriveFolderDocuments("token", "folder", "contact")).resolves.toEqual([pdf, native]);
+    await expect(listDriveFolderDocuments("token", "folder", "contact")).resolves.toEqual([renamed]);
+    const query = new URL(String(fetchMock.mock.calls[2][0])).searchParams;
+    expect(query.get("q")).toContain("'folder' in parents and trashed = false");
+    expect(query.get("pageToken")).toBe("next");
+    expect(fetchMock.mock.calls.every(([, options]) => options.cache === "no-store" && !options.method)).toBe(true);
+  });
+
+  it("rechaza una carpeta de otro expediente antes de listar archivos", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(response(folder));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(listDriveFolderDocuments("token", "folder", "other-contact")).rejects.toMatchObject({ status: 404 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([[403, {}], [200, { incompleteSearch: true }]])("rechaza una lista parcial cuando falla una página (%s)", async (status, body) => {
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce(response(folder))
+      .mockResolvedValueOnce(response({ files: [pdf], nextPageToken: "next" }))
+      .mockResolvedValueOnce(response(body, status)));
+    await expect(listDriveFolderDocuments("token", "folder", "contact")).rejects.toThrow();
+  });
+
+  it("descarta enlaces que no abren en Drive o Docs", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(response(folder))
+      .mockResolvedValueOnce(response({ files: [{ ...pdf, webViewLink: "https://drive.google.com.example.test/" }] })));
+    await expect(listDriveFolderDocuments("token", "folder", "contact")).resolves.toMatchObject([{ id: pdf.id, webViewLink: undefined }]);
+  });
+
   it("crea la jerarquía raíz una sola vez y la reutiliza al reconectar", async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(response({ files: [] }))

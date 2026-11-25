@@ -1,9 +1,9 @@
 import "server-only";
 import { requireUser } from "@/lib/data/auth";
 import { createIntegrationAdminClient } from "@/lib/supabase/admin";
-import type { ContactDetail, ContactDocument, ContactDriveFolder } from "@/lib/types";
+import type { ContactDetail, ContactDriveFolder } from "@/lib/types";
 import { driveAccessToken, getDriveConnection } from "@/lib/google/drive-connection";
-import { resolveContactDriveFolder } from "@/lib/google/drive";
+import { listDriveFolderDocuments, resolveContactDriveFolder } from "@/lib/google/drive";
 
 type FolderRow = {
   id: string;
@@ -27,17 +27,11 @@ export async function getContactDriveFolder(contactId: string) {
   return data ? toFolder(data as FolderRow) : null;
 }
 
-export async function listContactDocuments(contactId: string): Promise<ContactDocument[]> {
-  const { supabase, user } = await requireUser();
-  const { data, error } = await supabase.from("contact_documents")
-    .select("id, contact_id, name, mime_type, size_bytes, source, uploaded_at")
-    .eq("contact_id", contactId).eq("owner_id", user.id).eq("status", "ready")
-    .order("created_at", { ascending: false });
-  if (error) throw new Error("No se pudieron cargar los documentos.");
-  return (data || []).map((row) => ({
-    id: row.id, contactId: row.contact_id, name: row.name, mimeType: row.mime_type,
-    sizeBytes: Number(row.size_bytes), source: row.source as ContactDocument["source"], uploadedAt: row.uploaded_at,
-  }));
+export async function listContactDocuments(contactId: string) {
+  const { user } = await requireUser();
+  const folder = await getContactDriveFolder(contactId);
+  if (folder?.status !== "ready" || !folder.driveFolderId) return [];
+  return listDriveFolderDocuments(await driveAccessToken(user.id), folder.driveFolderId, contactId);
 }
 
 async function adminFolder(ownerId: string, contactId: string) {
