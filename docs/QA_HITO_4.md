@@ -46,6 +46,8 @@ La ficha consulta `files.list` en cada carga para los hijos directos del expedie
 
 Validación del cambio: lint, TypeScript y build superados, 48/48 pruebas unitarias y 12/12 pruebas de Playwright de demo en escritorio y móvil. Los 12 escenarios de Playwright que requieren cuentas de Supabase se omitieron en la copia temporal sin credenciales. Las pruebas del adaptador simulan respuestas de Drive y no sustituyen el ensayo con la API real.
 
+Revalidación con Supabase de desarrollo: lint, TypeScript y build superados. Unitarias 48/48. Playwright 24/24 en escritorio y móvil, sin omisiones. La primera ejecución con Drive conectado detectó un selector de prueba ambiguo porque «Activar expediente» y «Subir a Drive» aparecen juntos; se corrigió la comprobación para exigir ambos controles en ese estado. Una repetición concurrente perdió la sesión en un caso de Agenda. La repetición en serie completó los 24 escenarios. La prueba remota de Supabase verificó lectura propia de expedientes y documentos, bloqueo de lectura cruzada en ambos sentidos y ausencia de acceso a la tabla de conexiones desde ambas cuentas. Agenda y Contactos se probaron con Supabase real; la sincronización de Google Calendar y los fallos de Google Drive cuentan además con cobertura simulada.
+
 ### Alcance de los permisos
 
 | Archivo en la carpeta | Visibilidad esperada con `drive.file` |
@@ -63,6 +65,18 @@ Si el propietario lo autoriza, añadir `drive.metadata.readonly` únicamente a l
 Google clasifica este permiso como restringido. Para comercializar una aplicación externa, hay que revisar elegibilidad, completar la verificación correspondiente y prever una evaluación de seguridad si el servidor transmite o almacena los datos cubiertos, según los requisitos aplicables. Los nombres de archivos también pueden contener datos personales. Como alternativa, evaluar una identidad dedicada de integración con acceso de solo lectura concedido de forma explícita a carpetas de trabajo. Limita los recursos accesibles a esa identidad, pero exige gestionar permisos y bajas por carpeta, depende de las reglas de compartición de cada organización y requiere verificar por separado que cada agente conserve acceso. El alcance OAuth actual sigue siendo `drive.file`. [Política de datos de Google Workspace](https://developers.google.com/workspace/workspace-api-user-data-developer-policy).
 
 ### Ensayo con Drive real
+
+Resultado parcial con `drive.file`, en la ficha ficticia **QA BUG 002 Expediente ficticio**. Se comprobó el permiso registrado para la conexión de la cuenta ficticia y se activó el expediente desde la ficha.
+
+| Archivo | Listado real de Drive en la ficha | Apertura con sesión de Google |
+| --- | --- | --- |
+| A, subido desde Oficina Digital | `A-oficina-digital.txt` aparece una sola vez después de pulsar **Actualizar documentos** y tiene un enlace de Drive. | Pendiente en este ensayo. |
+| B, añadido directamente por el agente | Pendiente de añadirlo a la carpeta de prueba y medir. | Pendiente. |
+| C, añadido directamente por un colaborador | Pendiente de añadirlo desde otra cuenta autorizada y medir. | Pendiente. |
+
+La prueba empleó el listado en vivo de la ficha. No se inspeccionó contenido del archivo ni se solicitó un permiso adicional. La decisión de activar `drive.metadata.readonly` en desarrollo queda posterior a la comparación con los tres archivos.
+
+En el ensayo ampliado se debe comprobar el alcance real devuelto por Google para Drive y para Calendar: aunque Oficina Digital almacena las conexiones por separado, la autorización incremental de Google puede combinar permisos a nivel de proyecto OAuth. [Autorización OAuth en servidor](https://developers.google.com/identity/protocols/oauth2/web-server#incrementalAuth).
 
 1. En un expediente ficticio, sube `prueba-app.pdf` desde la ficha. Comprueba que aparece y se abre.
 2. Añade `prueba-agente.pdf` directamente desde la cuenta del agente en Drive. Pide a un colaborador con acceso previo que añada `prueba-colaborador.pdf`. Usa archivos sin datos reales.

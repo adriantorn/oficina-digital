@@ -133,20 +133,25 @@ try {
     { owner_id: userB.id, contact_id: contactB, folder_id: driveFolderB, drive_file_id: `test-file-b-${Date.now()}`, name: "Documento ficticio B.pdf", mime_type: "application/pdf", size_bytes: 100, status: "ready" },
   ]);
   assert.ifError(documentsError);
-  const { data: ownFoldersA, error: ownFoldersAError } = await clientA.from("contact_drive_folders").select("id").eq("contact_id", contactA);
-  assert.ifError(ownFoldersAError); assert.equal(ownFoldersA.length, 1);
-  const { data: foreignFoldersByB, error: foreignFoldersByBError } = await clientB.from("contact_drive_folders").select("id").eq("contact_id", contactA);
-  assert.ifError(foreignFoldersByBError); assert.equal(foreignFoldersByB.length, 0, "B pudo leer el expediente de A");
-  const { data: ownDocumentsA, error: ownDocumentsAError } = await clientA.from("contact_documents").select("id").eq("contact_id", contactA);
-  assert.ifError(ownDocumentsAError); assert.equal(ownDocumentsA.length, 1);
-  const { data: foreignDocumentsByB, error: foreignDocumentsByBError } = await clientB.from("contact_documents").select("id").eq("contact_id", contactA);
-  assert.ifError(foreignDocumentsByBError); assert.equal(foreignDocumentsByB.length, 0, "B pudo leer documentos de A");
+  for (const [client, ownContact, foreignContact, label] of [
+    [clientA, contactA, contactB, "A"],
+    [clientB, contactB, contactA, "B"],
+  ]) {
+    for (const table of ["contact_drive_folders", "contact_documents"]) {
+      const { data: own, error: ownError } = await client.from(table).select("id").eq("contact_id", ownContact);
+      assert.ifError(ownError);
+      assert.equal(own.length, 1, `${label} no pudo consultar su propio registro en ${table}`);
+      const { data: foreign, error: foreignError } = await client.from(table).select("id").eq("contact_id", foreignContact);
+      assert.ifError(foreignError);
+      assert.equal(foreign.length, 0, `${label} pudo consultar registros ajenos en ${table}`);
+    }
+    const { error: connectionsReadError } = await client.from("google_drive_connections").select("owner_id");
+    assert.ok(connectionsReadError, `${label} pudo leer la tabla de conexiones de Drive`);
+  }
   const { error: clientInsertFolderError } = await clientA.from("contact_drive_folders").insert({ contact_id: contactA, folder_name: "Intento cliente" });
   assert.ok(clientInsertFolderError, "el navegador pudo crear metadatos de Drive directamente");
   const { error: clientUpdateDocumentError } = await clientB.from("contact_documents").update({ name: "Ataque.pdf" }).eq("contact_id", contactA);
   assert.ok(clientUpdateDocumentError, "B pudo modificar documentos de A");
-  const { error: connectionsReadError } = await clientA.from("google_drive_connections").select("owner_id");
-  assert.ok(connectionsReadError, "el navegador pudo leer conexiones y tokens de Drive");
   console.log("PASS RLS de expedientes, documentos y conexiones de Drive entre dos agentes");
 
   const { data: readOwnB, error: readOwnBError } = await clientB

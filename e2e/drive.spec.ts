@@ -35,7 +35,8 @@ test("expediente y documentos son accesibles en escritorio y móvil", async ({ p
     const connect = page.getByRole("link", { name: "Conectar Google Drive" });
     const activate = page.getByRole("button", { name: "Activar expediente" });
     const upload = page.getByRole("button", { name: "Subir a Drive" });
-    await expect(connect.or(activate).or(upload)).toBeVisible();
+    await expect(connect.or(activate)).toBeVisible();
+    if (await activate.isVisible()) await expect(upload).toBeVisible();
     await page.screenshot({ path: `docs/screenshots/hito-4/contacto-documentos-${testInfo.project.name}.png`, fullPage: true });
     await page.goto("/app/profile");
     await page.getByRole("link", { name: "Integraciones de Google" }).click();
